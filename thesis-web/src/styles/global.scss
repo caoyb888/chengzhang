@@ -1,0 +1,79 @@
+@use "variables";
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
+  font-size: 14px;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}
+
+#app {
+  height: 100vh;
+  overflow: hidden;
+}
+
+// 公共布局
+.layout-wrapper {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.layout-sidebar {
+  width: var(--sidebar-width);
+  height: 100%;
+  background: var(--color-bg-sidebar);
+  transition: width .25s;
+  flex-shrink: 0;
+  overflow: hidden;
+
+  &.collapsed {
+    width: var(--sidebar-collapsed);
+  }
+}
+
+.layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.layout-header {
+  height: var(--header-height);
+  flex-shrink: 0;
+  background: var(--color-bg-card);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--content-padding);
+}
+
+.layout-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--content-padding);
+}
+
+// 卡片
+.thesis-card {
+  background: var(--color-bg-card);
+  border-radius: var(--border-radius-card);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+  padding: 20px;
+}
+
+// 状态色
+.status-approved  { color: var(--color-approved); }
+.status-reviewing { color: var(--color-reviewing); }
+.status-rejected  { color: var(--color-rejected); }
+.status-pending   { color: var(--color-pending); }

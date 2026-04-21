@@ -1,0 +1,4 @@
+com.chenzhang.thesis.common.config.MyBatisPlusConfig
+com.chenzhang.thesis.common.config.DataPermissionHandler
+com.chenzhang.thesis.common.exception.GlobalExceptionHandler
+com.chenzhang.thesis.common.util.SnowflakeIdGenerator

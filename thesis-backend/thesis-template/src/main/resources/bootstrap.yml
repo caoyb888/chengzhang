@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: thesis-template
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: THESIS_GROUP
+        username: nacos
+        password: ${NACOS_PASSWORD:nacos}
+      config:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: THESIS_GROUP
+        file-extension: yaml
+        username: nacos
+        password: ${NACOS_PASSWORD:nacos}
+        shared-configs:
+          - data-id: thesis-common.yaml
+            group: THESIS_GROUP
+            refresh: true
+
+server:
+  port: ${SERVER_PORT:8084}

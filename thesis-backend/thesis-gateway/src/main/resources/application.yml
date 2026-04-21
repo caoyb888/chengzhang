@@ -1,0 +1,109 @@
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: thesis-auth
+          uri: lb://thesis-auth
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=0
+        - id: thesis-user
+          uri: lb://thesis-user
+          predicates:
+            - Path=/api/v1/user/**,/api/v1/role/**,/api/v1/permission/**,/api/v1/teaching-point/**
+          filters:
+            - StripPrefix=0
+        - id: thesis-paper
+          uri: lb://thesis-paper
+          predicates:
+            - Path=/api/v1/paper/**,/api/v1/batch/**,/api/v1/topic/**,/api/v1/outline/**,/api/v1/annotation/**
+          filters:
+            - StripPrefix=0
+        - id: thesis-template
+          uri: lb://thesis-template
+          predicates:
+            - Path=/api/v1/template/**
+          filters:
+            - StripPrefix=0
+        - id: thesis-im
+          uri: lb://thesis-im
+          predicates:
+            - Path=/api/v1/im/**
+          filters:
+            - StripPrefix=0
+        - id: thesis-defense
+          uri: lb://thesis-defense
+          predicates:
+            - Path=/api/v1/defense/**
+          filters:
+            - StripPrefix=0
+        - id: thesis-statistics
+          uri: lb://thesis-statistics
+          predicates:
+            - Path=/api/v1/statistics/**
+          filters:
+            - StripPrefix=0
+        - id: thesis-ai
+          uri: lb://thesis-ai
+          predicates:
+            - Path=/api/v1/ai/**
+          filters:
+            - StripPrefix=0
+        - id: thesis-notify
+          uri: lb://thesis-notify
+          predicates:
+            - Path=/api/v1/notify/**
+          filters:
+            - StripPrefix=0
+        - id: thesis-file
+          uri: lb://thesis-file
+          predicates:
+            - Path=/api/v1/file/**
+          filters:
+            - StripPrefix=0
+        - id: thesis-admin
+          uri: lb://thesis-admin
+          predicates:
+            - Path=/api/v1/admin/**
+          filters:
+            - StripPrefix=0
+
+# Knife4j 网关聚合文档
+knife4j:
+  gateway:
+    enabled: true
+    strategy: discover
+    discover:
+      enabled: true
+      version: openapi3
+      excluded-services:
+        - thesis-gateway
+
+# Sa-Token（网关层仅做 Token 校验，授权在各服务做）
+sa-token:
+  token-name: Authorization
+  timeout: 604800        # 7d
+  active-timeout: 86400  # 1d
+  is-share: false
+  token-style: uuid
+  is-log: false
+
+# Sentinel 控制台
+spring.cloud.sentinel:
+  transport:
+    dashboard: ${SENTINEL_DASHBOARD:localhost:8858}
+    port: 8719
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always

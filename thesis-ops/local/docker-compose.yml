@@ -1,0 +1,235 @@
+version: "3.8"
+
+# Sprint 0 S0-01：本地开发中间件一键拉起
+# 启动：cd thesis-ops/local && docker-compose up -d
+# 验证：docker ps (全部 running) | http://localhost:8848/nacos | curl localhost:9200/_cluster/health
+
+networks:
+  thesis-net:
+    driver: bridge
+
+volumes:
+  mysql-core-data:
+  mysql-paper-data:
+  mysql-im-data:
+  mysql-biz-data:
+  redis-data:
+  nacos-data:
+  minio-data:
+  es-data:
+  rocketmq-data:
+
+services:
+
+  # ─── MySQL 四实例（单机模拟分库，生产环境为独立服务器） ─────────────────
+  mysql-core:
+    image: mysql:8.0.36
+    container_name: thesis-mysql-core
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: thesis_auth
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-core-data:/var/lib/mysql
+      - ./init/mysql-core.cnf:/etc/mysql/conf.d/custom.cnf:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-time-zone=+08:00
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - thesis-net
+
+  mysql-paper:
+    image: mysql:8.0.36
+    container_name: thesis-mysql-paper
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: thesis_paper
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-paper-data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-time-zone=+08:00
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - thesis-net
+
+  mysql-im:
+    image: mysql:8.0.36
+    container_name: thesis-mysql-im
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: thesis_im
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-im-data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-time-zone=+08:00
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - thesis-net
+
+  mysql-biz:
+    image: mysql:8.0.36
+    container_name: thesis-mysql-biz
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: thesis_statistics
+    ports:
+      - "3309:3306"
+    volumes:
+      - mysql-biz-data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-time-zone=+08:00
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - thesis-net
+
+  # ─── Redis 单机（开发环境，生产为 Cluster） ───────────────────────────────
+  redis:
+    image: redis:7.2.4-alpine
+    container_name: thesis-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis123} --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis123}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - thesis-net
+
+  # ─── Nacos 2.3（注册中心 + 配置中心） ────────────────────────────────────
+  nacos:
+    image: nacos/nacos-server:v2.3.2
+    container_name: thesis-nacos
+    environment:
+      MODE: standalone
+      NACOS_AUTH_ENABLE: "true"
+      NACOS_AUTH_TOKEN: ${NACOS_AUTH_TOKEN:-VGhpc0lzTXlDdXN0b21TZWNyZXRLZXkwMTI=}
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: mysql-core
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_DB_NAME: nacos_config
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    volumes:
+      - nacos-data:/home/nacos/data
+    depends_on:
+      mysql-core:
+        condition: service_healthy
+    networks:
+      - thesis-net
+
+  # ─── RocketMQ 5.1 ────────────────────────────────────────────────────────
+  rocketmq-namesrv:
+    image: apache/rocketmq:5.1.4
+    container_name: thesis-rocketmq-namesrv
+    command: sh mqnamesrv
+    ports:
+      - "9876:9876"
+    networks:
+      - thesis-net
+
+  rocketmq-broker:
+    image: apache/rocketmq:5.1.4
+    container_name: thesis-rocketmq-broker
+    command: sh mqbroker -n rocketmq-namesrv:9876 autoCreateTopicEnable=true
+    environment:
+      JAVA_OPT_EXT: "-Xms512m -Xmx512m"
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+    volumes:
+      - rocketmq-data:/home/rocketmq/store
+    depends_on:
+      - rocketmq-namesrv
+    networks:
+      - thesis-net
+
+  rocketmq-dashboard:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    container_name: thesis-rocketmq-dashboard
+    environment:
+      JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-namesrv:9876"
+    ports:
+      - "8180:8080"
+    depends_on:
+      - rocketmq-namesrv
+    networks:
+      - thesis-net
+
+  # ─── MinIO（对象存储） ─────────────────────────────────────────────────────
+  minio:
+    image: minio/minio:RELEASE.2024-04-18T19-09-19Z
+    container_name: thesis-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minio123456}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - thesis-net
+
+  # ─── Elasticsearch 8.12（全文索引 + 查重） ────────────────────────────────
+  elasticsearch:
+    image: elasticsearch:8.12.2
+    container_name: thesis-elasticsearch
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+    networks:
+      - thesis-net
+
+  kibana:
+    image: kibana:8.12.2
+    container_name: thesis-kibana
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - thesis-net

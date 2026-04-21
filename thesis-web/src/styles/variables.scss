@@ -1,0 +1,71 @@
+// ─── 学术极简（scholar）主题 ──────────────────────────────────────────────
+[data-theme="scholar"] {
+  --color-primary:      #409EFF;
+  --color-approved:     #67C23A;
+  --color-reviewing:    #E6A23C;
+  --color-rejected:     #F56C6C;
+  --color-pending:      #909399;
+
+  --color-bg:           #f5f7fa;
+  --color-bg-card:      #ffffff;
+  --color-bg-sidebar:   #001529;
+  --color-text:         #303133;
+  --color-text-sub:     #606266;
+  --color-border:       #dcdfe6;
+
+  --sidebar-width:      220px;
+  --sidebar-collapsed:  64px;
+  --header-height:      60px;
+  --content-padding:    24px;
+  --border-radius-base: 4px;
+  --border-radius-card: 8px;
+  --shadow-card:        0 2px 12px rgba(0,0,0,.08);
+}
+
+// ─── 霓虹暗黑（aurora）主题 ───────────────────────────────────────────────
+[data-theme="aurora"] {
+  --color-primary:      #7C3AED;
+  --color-approved:     #34D399;
+  --color-reviewing:    #FBBF24;
+  --color-rejected:     #F87171;
+  --color-pending:      #6B7280;
+
+  --color-bg:           #0F172A;
+  --color-bg-card:      #1E293B;
+  --color-bg-sidebar:   #0D1B2A;
+  --color-text:         #E2E8F0;
+  --color-text-sub:     #94A3B8;
+  --color-border:       #334155;
+
+  --sidebar-width:      220px;
+  --sidebar-collapsed:  64px;
+  --header-height:      60px;
+  --content-padding:    24px;
+  --border-radius-base: 6px;
+  --border-radius-card: 12px;
+  --shadow-card:        0 4px 24px rgba(124,58,237,.15);
+}
+
+// ─── 活力新知（vitality）主题 ─────────────────────────────────────────────
+[data-theme="vitality"] {
+  --color-primary:      #FF6B35;
+  --color-approved:     #52C41A;
+  --color-reviewing:    #FA8C16;
+  --color-rejected:     #FF4D4F;
+  --color-pending:      #8C8C8C;
+
+  --color-bg:           #FFF8F5;
+  --color-bg-card:      #FFFFFF;
+  --color-bg-sidebar:   #FF6B35;
+  --color-text:         #262626;
+  --color-text-sub:     #595959;
+  --color-border:       #FFD6C4;
+
+  --sidebar-width:      240px;
+  --sidebar-collapsed:  68px;
+  --header-height:      64px;
+  --content-padding:    20px;
+  --border-radius-base: 12px;
+  --border-radius-card: 16px;
+  --shadow-card:        0 4px 20px rgba(255,107,53,.12);
+}

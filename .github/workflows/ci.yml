@@ -1,0 +1,117 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ develop, 'feature/**', 'hotfix/**', 'release/**' ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  JAVA_VERSION: '21'
+  NODE_VERSION: '20'
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/thesis
+
+jobs:
+  # ─── 后端：代码检查 + 单测 + 构建镜像 ──────────────────────────────────────
+  backend-ci:
+    name: Backend CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: thesis-backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+
+      - name: Maven Checkstyle
+        run: mvn checkstyle:check -q
+
+      - name: Maven Build & Unit Test
+        run: mvn clean verify -DskipITs -T 4 --no-transfer-progress
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: thesis-backend/**/target/surefire-reports/
+
+      - name: Build Docker Images (develop branch only)
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+          for MODULE in gateway auth user paper template im defense statistics ai notify file; do
+            docker build -f thesis-${MODULE}/Dockerfile \
+              -t ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${MODULE}:dev \
+              thesis-${MODULE}/
+            docker push ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${MODULE}:dev
+          done
+
+  # ─── 前端：类型检查 + 构建 ──────────────────────────────────────────────────
+  frontend-ci:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: thesis-web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: thesis-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npm run type-check
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload Build Artifact (develop branch only)
+        if: github.ref == 'refs/heads/develop'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: thesis-web/dist/
+
+  # ─── 自动部署 dev 环境（develop 分支 push 后触发） ─────────────────────────
+  deploy-dev:
+    name: Deploy to Dev
+    needs: [ backend-ci, frontend-ci ]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Dev K8s
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          script: |
+            cd /opt/thesis
+            kubectl set image deployment/thesis-gateway \
+              gateway=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-gateway:dev -n thesis-dev
+            kubectl rollout status deployment/thesis-gateway -n thesis-dev --timeout=120s
+            echo "Dev deployment completed"
