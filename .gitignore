@@ -1,0 +1,21 @@
+# 本地环境变量（禁止提交）
+.env.local
+~/.thesis/local.env
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 构建产物
+target/
+dist/
+node_modules/
+
+# 日志
+*.log
+logs/
+
+# 系统文件
+.DS_Store
+Thumbs.db
