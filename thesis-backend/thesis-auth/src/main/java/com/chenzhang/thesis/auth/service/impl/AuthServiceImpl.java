@@ -3,7 +3,7 @@ package com.chenzhang.thesis.auth.service.impl;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.crypto.digest.BCrypt;
 import cn.hutool.crypto.digest.DigestUtil;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.chenzhang.thesis.auth.domain.dto.LoginByPasswordDTO;
 import com.chenzhang.thesis.auth.domain.dto.LoginBySmsDTO;
 import com.chenzhang.thesis.auth.domain.dto.RefreshTokenDTO;
@@ -187,10 +187,10 @@ public class AuthServiceImpl implements AuthService {
         long userId = StpUtil.getLoginIdAsLong();
         StpUtil.logout();
 
-        refreshTokenMapper.update(null, Wrappers.<RefreshToken>lambdaUpdate()
-                .eq(RefreshToken::getUserId, userId)
-                .eq(RefreshToken::getIsRevoked, 0)
-                .set(RefreshToken::getIsRevoked, 1));
+        refreshTokenMapper.update(null, new UpdateWrapper<RefreshToken>()
+                .eq("user_id", userId)
+                .eq("is_revoked", 0)
+                .set("is_revoked", 1));
 
         log.info("[登出] userId={}", userId);
     }

@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,7 +35,9 @@ public class PermissionServiceImpl implements PermissionService {
         );
         Map<Long, List<PermissionVO>> parentMap = all.stream()
                 .map(this::toPermissionVO)
-                .collect(Collectors.groupingBy(PermissionVO::getParentId));
+                .collect(HashMap::new,
+                        (m, p) -> m.computeIfAbsent(p.getParentId(), k -> new ArrayList<>()).add(p),
+                        HashMap::putAll);
 
         List<PermissionVO> roots = parentMap.getOrDefault(null, List.of());
         roots.forEach(root -> fillChildren(root, parentMap));
@@ -41,7 +45,7 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     private void fillChildren(PermissionVO node, Map<Long, List<PermissionVO>> parentMap) {
-        List<PermissionVO> children = parentMap.getOrDefault(node.getId(), List.of());
+        List<PermissionVO> children = parentMap.getOrDefault(node.getId(), new ArrayList<>());
         children.sort(Comparator.comparingInt(PermissionVO::getSortOrder));
         node.setChildren(children);
         children.forEach(child -> fillChildren(child, parentMap));
