@@ -123,7 +123,8 @@ services:
     environment:
       MODE: standalone
       NACOS_AUTH_ENABLE: "true"
-      NACOS_AUTH_TOKEN: ${NACOS_AUTH_TOKEN:-VGhpc0lzTXlDdXN0b21TZWNyZXRLZXkwMTI=}
+      NACOS_AUTH_TOKEN: ${NACOS_AUTH_TOKEN:-VGhpc0lzTXlDdXN0b21TZWNyZXRLZXlGb3JOYWNvczIwMjQwNDIyQXBwcw==}
+      MYSQL_SERVICE_DB_PARAM: allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Shanghai
       SPRING_DATASOURCE_PLATFORM: mysql
       MYSQL_SERVICE_HOST: mysql-core
       MYSQL_SERVICE_PORT: 3306
@@ -156,12 +157,10 @@ services:
     container_name: thesis-rocketmq-broker
     command: sh mqbroker -n rocketmq-namesrv:9876 autoCreateTopicEnable=true
     environment:
-      JAVA_OPT_EXT: "-Xms512m -Xmx512m"
+      JAVA_OPT_EXT: "-Xms256m -Xmx256m -Xmn128m -XX:MaxDirectMemorySize=256m"
     ports:
       - "10909:10909"
       - "10911:10911"
-    volumes:
-      - rocketmq-data:/home/rocketmq/store
     depends_on:
       - rocketmq-namesrv
     networks:
@@ -207,7 +206,7 @@ services:
     environment:
       discovery.type: single-node
       xpack.security.enabled: "false"
-      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     ports:
       - "9200:9200"
       - "9300:9300"
