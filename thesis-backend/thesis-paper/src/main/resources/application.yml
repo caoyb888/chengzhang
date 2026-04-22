@@ -1,0 +1,59 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: thesis-paper
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/thesis_paper?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai&useSSL=false
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    database: ${REDIS_DB:0}
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: THESIS_GROUP
+        username: nacos
+        password: ${NACOS_PASSWORD:nacos}
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: is_deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      id-type: auto
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+# Sa-Token 配置
+sa-token:
+  token-name: Authorization
+  timeout: 604800
+  active-timeout: 86400
+  is-share: false
+  token-style: uuid
+  is-log: false
+
+knife4j:
+  enable: true
+  openapi:
+    title: 论文核心服务接口文档
+    description: 宸章论文系统 - 论文核心服务（指导关系/流程引擎/审核/批注）
+    version: v1.0.0
+    concat: 宸章技术团队
+    url: https://chenzhang.com
+    email: support@chenzhang.com

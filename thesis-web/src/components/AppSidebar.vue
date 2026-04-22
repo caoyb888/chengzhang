@@ -23,10 +23,16 @@ const userStore = useUserStore()
 </script>
 
 <template>
-  <div class="layout-sidebar" :class="{ collapsed: appStore.sidebarCollapsed }">
+  <div
+    class="layout-sidebar"
+    :class="{ collapsed: appStore.sidebarCollapsed }"
+  >
     <div class="sidebar-logo">
       <span class="logo-icon">📝</span>
-      <span v-if="!appStore.sidebarCollapsed" class="logo-text">{{ props.logoText }}</span>
+      <span
+        v-if="!appStore.sidebarCollapsed"
+        class="logo-text"
+      >{{ props.logoText }}</span>
     </div>
 
     <el-menu
@@ -35,13 +41,18 @@ const userStore = useUserStore()
       background-color="transparent"
       :default-active="$route.path"
     >
-      <template v-for="item in navItems" :key="item.path">
+      <template
+        v-for="item in navItems"
+        :key="item.path"
+      >
         <el-menu-item
           v-if="!item.permission || userStore.hasPermission(item.permission)"
           :index="item.path"
         >
           <el-icon><component :is="item.icon" /></el-icon>
-          <template #title>{{ item.label }}</template>
+          <template #title>
+            {{ item.label }}
+          </template>
         </el-menu-item>
       </template>
     </el-menu>

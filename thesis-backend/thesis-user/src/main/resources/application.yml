@@ -1,0 +1,67 @@
+spring:
+  application:
+    name: thesis-user
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/thesis_user?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai&useSSL=false
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    database: 0
+    lettuce:
+      pool:
+        max-active: 20
+        max-idle: 10
+        min-idle: 2
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: THESIS_GROUP
+        username: nacos
+        password: ${NACOS_PASSWORD:nacos}
+      config:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: THESIS_GROUP
+        file-extension: yaml
+        username: nacos
+        password: ${NACOS_PASSWORD:nacos}
+        shared-configs:
+          - data-id: thesis-common.yaml
+            group: THESIS_GROUP
+            refresh: true
+
+server:
+  port: 8082
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+rocketmq:
+  name-server: ${ROCKETMQ_NAMESRV:localhost:9876}
+  producer:
+    group: thesis-user-producer-group
+
+# 用户服务配置
+thesis:
+  user:
+    default-password: ${DEFAULT_PASSWORD:123456}

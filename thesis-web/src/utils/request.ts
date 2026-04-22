@@ -12,34 +12,40 @@ const request = axios.create({
 let isRefreshing = false
 let pendingQueue: Array<(token: string) => void> = []
 
-function getToken(): string | null {
-  return localStorage.getItem('thesis_token')
+function getAccessToken(): string | null {
+  return localStorage.getItem('thesis_access_token')
 }
 
-function setToken(token: string): void {
-  localStorage.setItem('thesis_token', token)
+function getRefreshToken(): string | null {
+  return localStorage.getItem('thesis_refresh_token')
 }
 
-function clearAuth(): void {
-  localStorage.removeItem('thesis_token')
+function setTokens(accessToken: string, refreshToken: string): void {
+  localStorage.setItem('thesis_access_token', accessToken)
+  localStorage.setItem('thesis_refresh_token', refreshToken)
+}
+
+export function clearAuth(): void {
+  localStorage.removeItem('thesis_access_token')
+  localStorage.removeItem('thesis_refresh_token')
   localStorage.removeItem('thesis_user')
 }
 
 request.interceptors.request.use((config) => {
-  const token = getToken()
+  const token = getAccessToken()
   if (token) {
-    config.headers.Authorization = token
+    config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })
 
 request.interceptors.response.use(
-  (response: AxiosResponse<Result>) => {
+  (response: AxiosResponse<Result<unknown>>) => {
     const { code, message, data } = response.data
     if (code === 200) {
       return data as unknown as AxiosResponse
     }
-    if (code === 401) {
+    if (code === 401 || code === 4010) {
       handleUnauthorized()
       return Promise.reject(new Error(message))
     }
@@ -48,11 +54,14 @@ request.interceptors.response.use(
   },
   async (error) => {
     const { response, config } = error
-    if (response?.status === 401 && !config._retry) {
+    const resData = response?.data as Result<unknown> | undefined
+    const code = resData?.code
+
+    if ((code === 401 || code === 4010) && config && !config._retry) {
       if (isRefreshing) {
         return new Promise((resolve) => {
           pendingQueue.push((token) => {
-            config.headers.Authorization = token
+            config.headers.Authorization = `Bearer ${token}`
             resolve(request(config))
           })
         })
@@ -60,11 +69,13 @@ request.interceptors.response.use(
       config._retry = true
       isRefreshing = true
       try {
-        const newToken = await refreshToken()
-        setToken(newToken)
+        const refreshToken = getRefreshToken()
+        if (!refreshToken) throw new Error('no refresh token')
+        const newToken = await refreshAccessToken(refreshToken)
+        setTokens(newToken, refreshToken)
         pendingQueue.forEach((cb) => cb(newToken))
         pendingQueue = []
-        config.headers.Authorization = newToken
+        config.headers.Authorization = `Bearer ${newToken}`
         return request(config)
       } catch {
         clearAuth()
@@ -74,18 +85,17 @@ request.interceptors.response.use(
         isRefreshing = false
       }
     }
-    ElMessage.error(response?.data?.message || '网络异常，请稍后重试')
+    ElMessage.error(resData?.message || '网络异常，请稍后重试')
     return Promise.reject(error)
   },
 )
 
-async function refreshToken(): Promise<string> {
-  const res = await axios.post<Result<{ token: string }>>(
-    `${BASE_URL}/auth/refresh`,
-    {},
-    { headers: { Authorization: getToken() ?? '' } },
+async function refreshAccessToken(refreshToken: string): Promise<string> {
+  const res = await axios.post<Result<{ accessToken: string; expiresIn: number }>>(
+    `${BASE_URL}/auth/token/refresh`,
+    { refreshToken },
   )
-  return res.data.data.token
+  return res.data.data.accessToken
 }
 
 function handleUnauthorized(): void {

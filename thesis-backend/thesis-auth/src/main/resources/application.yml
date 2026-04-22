@@ -1,0 +1,57 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: thesis-auth
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/thesis_auth?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    database: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: THESIS_GROUP
+      config:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: THESIS_GROUP
+        file-extension: yaml
+
+# MyBatis-Plus
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      id-type: assign_id
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+# Sa-Token
+sa-token:
+  token-name: Authorization
+  timeout: 86400
+  active-timeout: -1
+  is-concurrent: true
+  is-share: false
+  token-style: jwt
+  jwt-secret-key: ${JWT_SECRET_KEY:chenzhang-thesis-auth-jwt-secret-key-2026}
+  is-read-cookie: false
+  is-read-header: true

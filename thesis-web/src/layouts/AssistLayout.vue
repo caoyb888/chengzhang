@@ -11,7 +11,10 @@ const navItems = [
 
 <template>
   <div class="layout-wrapper">
-    <AppSidebar :nav-items="navItems" logo-text="辅助指导教师端" />
+    <AppSidebar
+      :nav-items="navItems"
+      logo-text="辅助指导教师端"
+    />
     <div class="layout-main">
       <AppHeader />
       <main class="layout-content">

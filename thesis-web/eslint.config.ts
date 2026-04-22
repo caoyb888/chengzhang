@@ -4,33 +4,38 @@ import tsParser from '@typescript-eslint/parser'
 import vueParser from 'vue-eslint-parser'
 
 export default [
+  // 全局忽略
   {
-    ignores: ['dist/**', 'node_modules/**', '*.d.ts'],
+    ignores: ['dist/**', 'node_modules/**', 'src/types/auto-imports.d.ts', 'src/types/components.d.ts'],
   },
+
+  // Vue 文件：使用 eslint-plugin-vue flat/recommended 规则集
+  // pluginVue.configs['flat/recommended'] 是配置对象数组，展开后覆盖
+  ...pluginVue.configs['flat/recommended'].map((cfg: object) => ({
+    ...cfg,
+    files: ['**/*.vue'],
+  })),
+
+  // Vue 文件追加自定义规则
   {
     files: ['**/*.vue'],
-    plugins: {
-      vue: pluginVue,
-      '@typescript-eslint': tsEslint,
-    },
     languageOptions: {
       parser: vueParser,
       parserOptions: {
         parser: tsParser,
         ecmaVersion: 'latest',
         sourceType: 'module',
-        extraFileExtensions: ['.vue'],
       },
     },
     rules: {
-      ...pluginVue.configs['vue3-recommended'].rules,
       'vue/multi-word-component-names': 'off',
       'vue/require-default-prop': 'off',
       'vue/no-v-html': 'warn',
       'vue/component-name-in-template-casing': ['error', 'PascalCase'],
-      'vue/define-macros-order': ['error', { order: ['defineProps', 'defineEmits'] }],
     },
   },
+
+  // TypeScript 文件
   {
     files: ['**/*.ts', '**/*.tsx'],
     plugins: {
@@ -51,6 +56,8 @@ export default [
       '@typescript-eslint/no-non-null-assertion': 'warn',
     },
   },
+
+  // 全局规则（JS/TS/Vue 通用）
   {
     files: ['**/*.{js,ts,vue}'],
     rules: {

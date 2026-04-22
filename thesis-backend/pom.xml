@@ -117,7 +117,17 @@
       </dependency>
       <dependency>
         <groupId>cn.dev33</groupId>
+        <artifactId>sa-token-reactor-spring-boot3-starter</artifactId>
+        <version>${sa-token.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cn.dev33</groupId>
         <artifactId>sa-token-redis-jackson</artifactId>
+        <version>${sa-token.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cn.dev33</groupId>
+        <artifactId>sa-token-jwt</artifactId>
         <version>${sa-token.version}</version>
       </dependency>
 
@@ -263,6 +273,17 @@
                 <version>${mapstruct.version}</version>
               </path>
             </annotationProcessorPaths>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.2.5</version>
+          <configuration>
+            <includes>
+              <include>**/*Test.java</include>
+              <include>**/*Tests.java</include>
+            </includes>
           </configuration>
         </plugin>
         <plugin>

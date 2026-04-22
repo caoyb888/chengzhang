@@ -34,21 +34,38 @@ async function handleLogout() {
       style="width: 110px; margin-right: 12px"
       @change="handleThemeChange"
     >
-      <el-option label="学术极简" value="scholar" />
-      <el-option label="霓虹暗黑" value="aurora" />
-      <el-option label="活力新知" value="vitality" />
+      <el-option
+        label="学术极简"
+        value="scholar"
+      />
+      <el-option
+        label="霓虹暗黑"
+        value="aurora"
+      />
+      <el-option
+        label="活力新知"
+        value="vitality"
+      />
     </el-select>
 
-    <el-dropdown trigger="click" @command="handleLogout">
+    <el-dropdown
+      trigger="click"
+      @command="handleLogout"
+    >
       <div class="user-info">
-        <el-avatar :size="32" :src="userStore.userInfo?.avatarUrl">
+        <el-avatar
+          :size="32"
+          :src="userStore.userInfo?.avatarUrl"
+        >
           {{ userStore.userInfo?.realName?.charAt(0) }}
         </el-avatar>
         <span class="user-name">{{ userStore.userInfo?.realName }}</span>
       </div>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+          <el-dropdown-item command="logout">
+            退出登录
+          </el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
