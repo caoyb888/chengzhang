@@ -34,6 +34,7 @@ public enum ResultCode {
     PAPER_DEADLINE_EXPIRED(2002, "提交时间窗口已关闭"),
     PAPER_TOPIC_TAKEN(2003, "该选题已被他人选择，请重新选择"),
     PAPER_COMMENT_TOO_SHORT(2004, "评语字数不足最低要求"),
+    BATCH_STATUS_NOT_ALLOWED(2011, "批次状态不允许此操作"),
 
     // 权限错误码（3xxx）
     DATA_PERMISSION_DENIED(3001, "无权访问该数据");
